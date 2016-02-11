@@ -7,12 +7,16 @@ var tn;
 var bandwidth = require('node-bandwidth');
 var phrases = require('./phrases.json').phrases;
 var photos = require('./photos.json').photos;
+var bears = require('./bears.json').photos;
+var candy = require('./candy.json').photos;
+var xml = bandwidth.xml;
 var Application = Promise.promisifyAll(bandwidth.Application);
 var PhoneNumber = Promise.promisifyAll(bandwidth.PhoneNumber);
 var AvailableNumber = Promise.promisifyAll(bandwidth.AvailableNumber);
 var Message = Promise.promisifyAll(bandwidth.Message);
 
 var appName = 'HeartText';
+var baseURL = process.env.baseURL;
 bandwidth.Client.globalOptions.userId = process.env.CATAPULT_USER_ID;
 bandwidth.Client.globalOptions.apiToken = process.env.CATAPULT_API_TOKEN;
 bandwidth.Client.globalOptions.apiSecret = process.env.CATAPULT_API_SECRET;
@@ -42,8 +46,9 @@ var newApplication =function (url) {
 	var applicationId;
 	return Application.createAsync({
 			name: appName,
-			incomingMessageUrl: url + '/callback/',
-			callbackHttpMethod: 'post',
+			incomingMessageUrl: url + '/msgcallback/',
+			incomingCallUrl: url + '/callcallback/',
+			callbackHttpMethod: 'get',
 			autoAnswer: false
 		})
 		.then(function(application) {
@@ -75,11 +80,10 @@ var configureApplication = function () {
 			return fetchTNByAppId(applicationId);
 		}
 		else {
-			return newApplication('http://b6085a61.ngrok.io');
+			return newApplication(baseURL);
 		}
 	});
 };
-
 
 var getPhrase = function () {
 	return phrases[Math.floor(Math.random() * phrases.length)];
@@ -90,36 +94,63 @@ var getPhoto = function () {
 	return photo;
 };
 
+var getBear = function () {
+	return bears[Math.floor(Math.random() * bears.length)];
+};
+
+var getCandy = function () {
+	return candy[Math.floor(Math.random() * candy.length)];
+};
+
 app.use(express.static('static'));
 app.use(bodyParser.json());
 app.set('port', (process.env.PORT || 5000));
 
+app.get('/callcallback', function (req, res) {
+	var response = new xml.Response();
+	var speakSentence = new xml.SpeakSentence({
+		sentence: 'Happy valentines day from Bandwidth',
+		voice: 'susan',
+		gender: 'female',
+		locale: 'en_US'
+	});
+	var hangup = new xml.Hangup();
+	response.push(speakSentence);
+	response.push(hangup);
+	res.send(response.toXml());
+});
+
 //three sets of each number
-app.post('/callback', function(req, res) {
-	var hasBody = (typeof req.body !== 'undefined' && req.body !== null);
-	if (hasBody) {
-		var hasEvent = (typeof req.body.eventType !== 'undefined');
-		if (hasEvent) {
-			if (req.body.eventType === 'sms') {
-				var response = {
-					to: req.body.from,
-					from: req.body.to,
-					text: getPhrase()
-				};
-				var text = req.body.text.toLowerCase();
-				if(req.body.text === 'I <3 u') {
-					response.media = [getPhoto()];
-				}
-				Message.createAsync(response)
-				.then(function (result) {
-					console.log(result);
-				})
-				.catch(function (e) {
-					console.log(e);
-				});
-			}
-		}
+app.get('/msgcallback', function(req, res) {
+	var response = {
+		to: req.query.from,
+		from: req.query.to,
+		text: getPhrase()
+	};
+	var text = req.query.text.toLowerCase();
+	switch(text) {
+		case 'i luv u':
+			response.media = [getPhoto()];
+			break;
+		case 'hugs':
+			response.media = [getBear()];
+			break;
+		case 'kisses':
+			response.media = [getCandy()];
+			break;
+		case 'bandwidth':
+			response.media = [''];
+			break;
+		default:
+			break;
 	}
+	Message.createAsync(response)
+	.then(function (result) {
+		//console.log(result);
+	})
+	.catch(function (e) {
+		console.log(e);
+	});
 	res.sendStatus(201); //Immediately respond to request
 });
 
