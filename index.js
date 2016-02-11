@@ -136,7 +136,7 @@ app.get('/msgcallback', function(req, res) {
 			response.media = [getCandy()];
 			break;
 		case 'bandwidth':
-			response.media = [''];
+			response.media = ['https://s3.amazonaws.com/bwdemos/vday/bw.jpg'];
 			break;
 		default:
 			break;
