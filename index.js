@@ -108,14 +108,11 @@ app.set('port', (process.env.PORT || 5000));
 
 app.get('/callcallback', function (req, res) {
 	var response = new xml.Response();
-	var speakSentence = new xml.SpeakSentence({
-		sentence: 'Happy valentines day from Bandwidth',
-		voice: 'susan',
-		gender: 'female',
-		locale: 'en_US'
+	var playAudio = new xml.PlayAudio({
+		url: 'https://s3.amazonaws.com/bwdemos/vday/vday.mp3'
 	});
 	var hangup = new xml.Hangup();
-	response.push(speakSentence);
+	response.push(playAudio);
 	response.push(hangup);
 	res.send(response.toXml());
 });
