@@ -1,9 +1,5 @@
 {
   "photos": [
-    "https://s3.amazonaws.com/bwdemos/vday/vday_1.jpg",
-    "https://s3.amazonaws.com/bwdemos/vday/vday_2.jpg",
-    "https://s3.amazonaws.com/bwdemos/vday/vday_3.jpg",
-    "https://s3.amazonaws.com/bwdemos/vday/vday_4.jpg",
-    "https://s3.amazonaws.com/bwdemos/vday/vday_5.jpg"
+    "https://s3.amazonaws.com/bwdemos/vday/bears.jpg"
   ]
 }
