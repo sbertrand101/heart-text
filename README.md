@@ -1,5 +1,7 @@
 ## heart-text
 text a number, get a sweet heart phrase
+![Screen Shot](/readme_images/demo.png?raw=true)
+
 
 Demos uses of the:
 * [Catapult Node SDK](https://github.com/bandwidthcom/node-bandwidth)
@@ -26,12 +28,14 @@ Demos uses of the:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
+#### Once deployed, visit the site to view phone number!
+
 ## How it works
 Heart Text has two different catapult callback routes ```/msgcallback``` & ```/callcallback```
 
 ### Incoming messages
 ![Basic Flow](/readme_images/Heart-Text - Auto-Respond-SMS.png?raw=true)
-```NodeJS
+```Javascript
 app.get('/msgcallback', function(req, res) {
 	var response = {
 		to: req.query.from,
@@ -69,7 +73,7 @@ app.get('/msgcallback', function(req, res) {
 
 ### Incoming Calls
 ![Basic Flow](/readme_images/Heart-Text - Incoming call.png?raw=true)
-```NodeJS
+```Javascript
 app.get('/callcallback', function (req, res) {
 	var response = new xml.Response();
 	var playAudio = new xml.PlayAudio({
