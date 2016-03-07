@@ -3,20 +3,20 @@ var Promise = require('bluebird');
 var app = express();
 var bodyParser = require('body-parser');
 var http = require('http').Server(app);
-var tn;
 var bandwidth = require('node-bandwidth');
 var phrases = require('./phrases.json').phrases;
 var photos = require('./photos.json').photos;
 var bears = require('./bears.json').photos;
 var candy = require('./candy.json').photos;
 var xml = bandwidth.xml;
+var Account = Promise.promisifyAll(bandwidth.Account);
 var Application = Promise.promisifyAll(bandwidth.Application);
 var PhoneNumber = Promise.promisifyAll(bandwidth.PhoneNumber);
 var AvailableNumber = Promise.promisifyAll(bandwidth.AvailableNumber);
 var Message = Promise.promisifyAll(bandwidth.Message);
-
-var appName = 'HeartText';
-var baseURL = process.env.baseURL;
+var fs = require('fs');
+var indexHTML = fs.readFileSync('./index.html', 'utf8');
+var rootName = 'HeartText-';
 bandwidth.Client.globalOptions.userId = process.env.CATAPULT_USER_ID;
 bandwidth.Client.globalOptions.apiToken = process.env.CATAPULT_API_TOKEN;
 bandwidth.Client.globalOptions.apiSecret = process.env.CATAPULT_API_SECRET;
@@ -37,52 +37,62 @@ var fetchTNByAppId = function (applicationId) {
 		applicationId: applicationId
 	})
 	.then(function (numbers) {
-		tn = numbers[0].number;
+		app.tn = numbers[0].number;
+		console.log('Found Number: ' + app.tn);
+		return app.tn;
 	});
 };
 
 // Creates a new application then orders a number and assigns it to application
-var newApplication =function (url) {
+var newApplication =function (appName, url) {
 	var applicationId;
 	return Application.createAsync({
 			name: appName,
 			incomingMessageUrl: url + '/msgcallback/',
 			incomingCallUrl: url + '/callcallback/',
 			callbackHttpMethod: 'get',
-			autoAnswer: false
+			autoAnswer: true
 		})
 		.then(function(application) {
 			//search an available number
+			console.log('Created Application: ' + application.id);
 			applicationId = application.id;
 			return AvailableNumber.searchLocalAsync({
-				areaCode: '415',
+				areaCode: '919',
 				quantity: 1
 			});
 		})
 		.then(function(numbers) {
 			// and reserve it
-			tn = numbers[0].number;
+			console.log('Found Number: ' + numbers[0].number);
+			app.tn = numbers[0].number;
 			return PhoneNumber.createAsync({
-				number: tn,
+				number: app.tn,
 				applicationId: applicationId
 			});
 		});
 };
 
 //Checks the current Applications to see if we have one.
-var configureApplication = function () {
+var configureApplication = function (appName, appCallbackUrl) {
 	return Application.listAsync({
 		size: 1000
 	})
 	.then(function (applications) {
 		var applicationId = searchForApplication(applications, appName);
 		if(applicationId !== false) {
+			console.log('Application Found');
 			return fetchTNByAppId(applicationId);
 		}
 		else {
-			return newApplication(baseURL);
+			console.log('No Application Found');
+			return newApplication(appName, appCallbackUrl);
 		}
 	});
+};
+
+var getBaseUrlFromReq = function (req) {
+	return 'http://' + req.hostname;
 };
 
 var getPhrase = function () {
@@ -102,7 +112,6 @@ var getCandy = function () {
 	return candy[Math.floor(Math.random() * candy.length)];
 };
 
-app.use(express.static('static'));
 app.use(bodyParser.json());
 app.set('port', (process.env.PORT || 5000));
 
@@ -141,6 +150,7 @@ app.get('/msgcallback', function(req, res) {
 		default:
 			break;
 	}
+	console.log(response);
 	Message.createAsync(response)
 	.then(function (result) {
 		//console.log(result);
@@ -151,16 +161,35 @@ app.get('/msgcallback', function(req, res) {
 	res.sendStatus(201); //Immediately respond to request
 });
 
-// app.get('/', function(req, res) {
-// 	configureApplication(req)
-// 	.then(function () {
-//
-// 	})
-// });
-configureApplication()
-.then(function () {
-	http.listen(app.get('port'), function(){
-		console.log('listening on *:' + app.get('port'));
-		console.log('Text #: '+ tn);
-	});
+var makeWebPage = function (phoneNumber, res) {
+	phoneNumber = phoneNumber.replace('+1', '');
+	phoneNumber =
+		phoneNumber.substr(0,3) + '-' +
+		phoneNumber.substr(3,3) + '-' +
+		phoneNumber.substr(6,4);
+	var html = indexHTML.replace('PHONE_NUMBER', phoneNumber);
+	res.set('Content-Type', 'text/html');
+	res.send(html);
+};
+
+app.get('/', function(req, res) {
+	app.callbackUrl = getBaseUrlFromReq(req);
+	var appName = rootName + app.callbackUrl;
+	if (app.tn === undefined) {
+		configureApplication(appName, app.callbackUrl)
+		.then(function () {
+			makeWebPage(app.tn, res);
+		})
+		.catch(function(e) {
+			console.log(e);
+			res.status(500).send(e);
+		});
+	}
+	else {
+		makeWebPage(app.tn, res);
+	}
+});
+
+http.listen(app.get('port'), function(){
+	console.log('listening on *:' + app.get('port'));
 });

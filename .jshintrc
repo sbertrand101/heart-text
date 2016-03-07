@@ -18,6 +18,7 @@
   "strict"        : false,
   "trailing"      : true,
   "maxparams"     : 5,
+  "no-plusplus"   : 0,
   "maxdepth"      : 4,
   "maxstatements" : false,
   "maxlen"        : 90,
