@@ -1,7 +1,12 @@
-## heart-text
+<div align="center">
+
+# Heart Text
+
+<a href="http://dev.bandwidth.com"><img src="https://s3.amazonaws.com/bwdemos/BW-VMP.png"/></a>
+</div>
+
 text a number, get a sweet heart phrase
 ![Screen Shot](/readme_images/demo.png?raw=true)
-
 
 Demos uses of the:
 * [Catapult Node SDK](https://github.com/bandwidthcom/node-bandwidth)
@@ -11,6 +16,8 @@ Demos uses of the:
 * [Ordering Phone Number](http://ap.bandwidth.com/docs/rest-api/phonenumbers/#resourcePOSTv1usersuserIdphoneNumbers/?utm_medium=social&utm_source=github&utm_campaign=dtolb&utm_content=_)
 * [Sending MMS](http://ap.bandwidth.com/docs/rest-api/messages/#resourcePOSTv1usersuserIdmessages/?utm_medium=social&utm_source=github&utm_campaign=dtolb&utm_content=_)
 * [Sending SMS](http://ap.bandwidth.com/docs/rest-api/messages/#resourcePOSTv1usersuserIdmessages/?utm_medium=social&utm_source=github&utm_campaign=dtolb&utm_content=_)
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
 ## Prerequisites
 - Configured Machine with Ngrok/Port Forwarding -OR- Heroku Account
