@@ -2,7 +2,7 @@
 
 # Heart Text
 
-<a href="http://dev.bandwidth.com"><img src="https://s3.amazonaws.com/bwdemos/BW-VMP.png"/></a>
+<a href="http://dev.bandwidth.com"><img src="https://s3.amazonaws.com/bwdemos/BW_Messaging.png"/></a>
 </div>
 
 text a number, get a sweet heart phrase
